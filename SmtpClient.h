@@ -9,20 +9,14 @@ class SmtpClient {
 public:
   SmtpClient(Client *client, char *server);
   SmtpClient(Client *client, char *server, uint16_t port);
-  SmtpClient(Client *client, char *server, char* username, char *password);
-  SmtpClient(Client *client, char *server, unsigned int port, char *username, char *password);
   SmtpClient(Client *client, IPAddress serverIP);
   SmtpClient(Client *client, IPAddress serverIP, uint16_t port);
-  SmtpClient(Client *client, IPAddress serverIP, char *username, char *password);
-  SmtpClient(Client *client, IPAddress serverIP, unsigned int port, char *username, char *password);
   int send(Mail *mail);
 
 private:
   char *_server;
   IPAddress _serverIP;
   uint16_t _port;
-  char *_username;
-  char *_password;
   Client *_client;
 
   int _send(Mail *mail);

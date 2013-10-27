@@ -11,26 +11,10 @@ SmtpClient::SmtpClient(Client* client, char *server) : _client(client), _server(
 SmtpClient::SmtpClient(Client* client, char *server, uint16_t port) : _client(client), _server(server), _serverIP(ZERO_IP), _port(port) {
 }
 
-SmtpClient::SmtpClient(Client* client, char *server, char *username, char *password)
-  : _client(client), _server(server), _serverIP(ZERO_IP), _port(SMTP_PORT), _username(username), _password(password) {
-}
-
-SmtpClient::SmtpClient(Client* client, char *server, uint16_t port, char *username, char *password)
-  : _client(client), _server(server), _serverIP(ZERO_IP), _port(port), _username(username), _password(password) {
-}
-
 SmtpClient::SmtpClient(Client* client, IPAddress serverIP) : _client(client), _serverIP(serverIP), _server(""), _port(SMTP_PORT) {
 }
 
 SmtpClient::SmtpClient(Client* client, IPAddress serverIP, uint16_t port) : _client(client), _serverIP(serverIP), _server(""), _port(port) {
-}
-
-SmtpClient::SmtpClient(Client* client, IPAddress serverIP, char *username, char *password)
-  : _client(client), _serverIP(serverIP), _server(""), _port(SMTP_PORT), _username(username), _password(password) {
-}
-
-SmtpClient::SmtpClient(Client* client, IPAddress serverIP, uint16_t port, char *username, char *password)
-  : _client(client), _serverIP(serverIP), _server(""), _port(port), _username(username), _password(password) {
 }
 
 
