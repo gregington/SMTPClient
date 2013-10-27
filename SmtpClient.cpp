@@ -42,7 +42,6 @@ int SmtpClient::_send(Mail *mail) {
   if (rcptTo(mail) != 250) {
     return 0;
   }
-  Serial.println("pre-data");
   if (data() != 354) {
     return 0;
   }
@@ -108,6 +107,9 @@ void SmtpClient::headers(Mail *mail) {
   if (mail->_replyTo) {
     header("Reply-To:", mail->_replyTo);
   }
+  recipientHeader("To:", TO, mail);
+  recipientHeader("Cc:", CC, mail);
+  recipientHeader("Bcc:", BCC, mail);
 
   header("Subject:", mail->_subject);
 }
@@ -133,12 +135,10 @@ void SmtpClient::recipientHeader(char* header, recipient_t type, Mail *mail) {
   }
   if (!first) {
     _client->print(CRLF);
-    Serial.print(CRLF);
   }
 }
 
 void SmtpClient::body(char *body) {
-  Serial.print("body");
   int cr = 0;
   int lf = 0;
 
