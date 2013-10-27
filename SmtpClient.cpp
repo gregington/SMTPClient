@@ -34,7 +34,7 @@ SmtpClient::SmtpClient(Client* client, IPAddress serverIP, uint16_t port, char *
 }
 
 
-int SmtpClient::send(Mail mail) {
+int SmtpClient::send(Mail *mail) {
   int result = connect();
   if (!result) {
     _client->stop();
@@ -45,25 +45,25 @@ int SmtpClient::send(Mail mail) {
   return result;
 }
 
-int SmtpClient::_send(Mail mail) {
+int SmtpClient::_send(Mail *mail) {
   if (readStatus() != 220) {
     return 0;
   }
   if (helo() != 250) {
     return 0;
   }
-  if (mailFrom(mail.from) != 250) {
+  if (mailFrom(mail->_from) != 250) {
     return 0;
   }
-  // TODO CC, BCC
-  if (rcptTo(mail.to) != 250) {
+  if (rcptTo(mail) != 250) {
     return 0;
   }
+  Serial.println("pre-data");
   if (data() != 354) {
     return 0;
   }
   headers(mail);
-  body(mail.body);
+  body(mail->_body);
   if (finishBody() != 250) {
     return 0;
   }
@@ -98,11 +98,19 @@ int SmtpClient::mailFrom(char *from) {
   return readStatus();
 }
 
-int SmtpClient::rcptTo(char *to) {
-  _client->print("RCPT TO:");
-  _client->print(to);
-  _client->print(CRLF);
-  return readStatus();
+int SmtpClient::rcptTo(Mail *mail) {
+  int status;
+  for (uint8_t i = 0; i < mail->_recipientCount; i++) {
+    _client->print("RCPT TO:");
+    _client->print(mail->_recipients[i]);
+    _client->print(CRLF);
+
+    status = readStatus();
+    if (status != 250) {
+      break;
+    }
+  }
+  return status;
 }
 
 int SmtpClient::data() {
@@ -111,15 +119,13 @@ int SmtpClient::data() {
   return readStatus();
 }
 
-void SmtpClient::headers(Mail mail) {
-  header("From:", mail.from);
-  if (mail.replyTo) {
-    header("Reply-To:", mail.replyTo);
+void SmtpClient::headers(Mail *mail) {
+  header("From:", mail->_from);
+  if (mail->_replyTo) {
+    header("Reply-To:", mail->_replyTo);
   }
 
-  header("To:", mail.to);
-
-  header("Subject:", mail.subject);
+  header("Subject:", mail->_subject);
 }
 
 void SmtpClient::header(char* header, char* value) {
@@ -128,8 +134,27 @@ void SmtpClient::header(char* header, char* value) {
   _client->print(CRLF);
 }
 
+void SmtpClient::recipientHeader(char* header, recipient_t type, Mail *mail) {
+  int first = 1;
+  for (int i = 0; i < mail->_recipientCount; i++) {
+    if (mail->_recipientTypes[i] == type) {
+      if (first) {
+        _client->print(header);
+        first = 0;
+      } else {
+        _client->print(',');
+      }
+      _client->print(mail->_recipients[i]);
+    }
+  }
+  if (!first) {
+    _client->print(CRLF);
+    Serial.print(CRLF);
+  }
+}
+
 void SmtpClient::body(char *body) {
-  // TODO Need to escape cr lf .
+  Serial.print("body");
   int cr = 0;
   int lf = 0;
 
@@ -148,8 +173,6 @@ void SmtpClient::body(char *body) {
       cr = lf = 0;
     }
     _client->print((char) *body++);
-    // TODO use a char buffer as each byte is being sent in its own
-    // packet
   }
 }
 
